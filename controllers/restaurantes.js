@@ -1,79 +1,80 @@
-const pool = require('../bd/db');
+
+/*________________________________ Realizado por: Cristhian Andres Burbano Mendoza ID:863101 ________________________________*/
+
+const client = require('../bd');
 
 // Obtener todos los restaurantes
-const getAllRestaurantes = async (req, res) => {
+async function getAllRestaurantes(req, res) {
     try {
-        const result = await pool.query('SELECT * FROM restaurante');
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al obtener restaurantes' });
+        const result = await client.query('SELECT * FROM Restaurante');
+        res.status(200).json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-};
+}
 
 // Obtener un restaurante por ID
-const getRestauranteById = async (req, res) => {
+async function getRestauranteById(req, res) {
     const { id } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM restaurante WHERE id_rest = $1', [id]);
+        const result = await client.query('SELECT * FROM Restaurante WHERE id_rest = $1', [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Restaurante no encontrado' });
+            res.status(404).json({ message: 'Restaurante no encontrado' });
+        } else {
+            res.status(200).json(result.rows[0]);
         }
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al obtener restaurante' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-};
+}
 
 // Crear un nuevo restaurante
-const createRestaurante = async (req, res) => {
+async function createRestaurante(req, res) {
     const { nombre, ciudad, direccion, fecha_apertura } = req.body;
     try {
-        const result = await pool.query(
-            'INSERT INTO restaurante (nombre, ciudad, direccion, fecha_apertura) VALUES ($1, $2, $3, $4) RETURNING *',
+        const result = await client.query(
+            'INSERT INTO Restaurante (nombre, ciudad, direccion, fecha_apertura) VALUES ($1, $2, $3, $4) RETURNING *',
             [nombre, ciudad, direccion, fecha_apertura]
         );
         res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al crear restaurante' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-};
+}
 
 // Actualizar un restaurante
-const updateRestaurante = async (req, res) => {
+async function updateRestaurante(req, res) {
     const { id } = req.params;
     const { nombre, ciudad, direccion, fecha_apertura } = req.body;
     try {
-        const result = await pool.query(
-            'UPDATE restaurante SET nombre = $1, ciudad = $2, direccion = $3, fecha_apertura = $4 WHERE id_rest = $5 RETURNING *',
+        const result = await client.query(
+            'UPDATE Restaurante SET nombre = $1, ciudad = $2, direccion = $3, fecha_apertura = $4 WHERE id_rest = $5 RETURNING *',
             [nombre, ciudad, direccion, fecha_apertura, id]
         );
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Restaurante no encontrado' });
+        if (result.rowCount === 0) {
+            res.status(404).json({ message: 'Restaurante no encontrado' });
+        } else {
+            res.status(200).json(result.rows[0]);
         }
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al actualizar restaurante' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-};
+}
 
 // Eliminar un restaurante
-const deleteRestaurante = async (req, res) => {
+async function deleteRestaurante(req, res) {
     const { id } = req.params;
     try {
-        const result = await pool.query('DELETE FROM restaurante WHERE id_rest = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Restaurante no encontrado' });
+        const result = await client.query('DELETE FROM Restaurante WHERE id_rest = $1 RETURNING *', [id]);
+        if (result.rowCount === 0) {
+            res.status(404).json({ message: 'Restaurante no encontrado' });
+        } else {
+            res.status(200).json({ message: 'Restaurante eliminado' });
         }
-        res.json({ message: 'Restaurante eliminado correctamente' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al eliminar restaurante' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-};
+}
 
 module.exports = {
     getAllRestaurantes,
